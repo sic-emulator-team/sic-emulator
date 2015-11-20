@@ -1,3 +1,8 @@
+import java.io.File;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
+import java.io.IOException;
+
 public class Memory {
 
     private byte[] memory;
@@ -37,12 +42,22 @@ public class Memory {
         else 
             memory[addr] = (byte) val;
     }
-    
+
     // Save the memory contents to a file so we can see the state of memory
     public void hexDump(String filename) { 
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(new File(filename)))) {
+            bw.write("Registers: \n");
+            bw.write(String.format(" A: %06x\t  X: %06x\t  L: %06x\n", A, X, L));
+            bw.write(String.format("SW: %06x\t PC: %06x\t CC: %06x\n", SW, PC, CC));
 
+            for (int i = 0; i < memory.length; i++) {
+                if (i % 16 == 0) bw.write(String.format("\n%04x   ", i));
+                bw.write(String.format("%02x", memory[i]));
+                if (i + 1 < memory.length) bw.write(" ");
+            }
+        }
+        catch (IOException e) {
+            // do nothing
+        }
     }
-
 }
-
-
