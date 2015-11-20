@@ -55,6 +55,7 @@ public class ALU {
             return true;
         }
         mem.A &= data;
+        return false;
     }
     
     public static boolean comp(Memory mem, int addr, boolean indexed) {
