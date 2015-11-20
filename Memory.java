@@ -1,7 +1,7 @@
 public class Memory {
 
     private byte[] memory;
-    public int A, X, L, SW, PC;
+    public int A, X, L, SW, PC, CC;
 
     public Memory() {
         memory = new byte[32768];
