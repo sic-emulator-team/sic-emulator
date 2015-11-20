@@ -45,6 +45,50 @@ public class ALU {
 
         return false;
     }
+    
+    public static boolean and(Memory mem, int addr, boolean indexed) {
+        int data = 0;
+        try {
+            data = mem.getWord(addr, indexed);
+        }
+        catch (ArrayIndexOutOfBoundsException e) {
+            return true;
+        }
+        mem.A &= data;
+    }
+    
+    public static boolean comp(Memory mem, int addr, boolean indexed) {
+        int data = 0;
+        try {
+            data = mem.getWord(addr, indexed);
+        }
+        catch (ArrayIndexOutOfBoundsException e) {
+            return true;
+        }
+        if (mem.A == data) {
+            mem.CC = 0;
+            //set Conditional Code to 0 for JEQ instruction
+        } else if (mem.A < data) {
+            mem.CC = 1;
+            //set Conditional Code to 1 for JLT instruction
+        } else {
+            mem.CC = 2;
+            //set Conditional Code to 2 for JGT instruction
+        }
+        return false;
+    }
+    
+    public static boolean div(Memory mem, int addr, boolean indexed) {
+        int data = 0;
+        try {
+            data = mem.getWord(addr, indexed);
+        }
+        catch (ArrayIndexOutOfBoundsException e) {
+            return true;
+        }
+        mem.A /= data;
+        return false;
+    }
 
     public static boolean ldx(Memory mem, int addr, boolean indexed) {
         int data = 0;
