@@ -1,3 +1,8 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.File;
+import java.io.IOException;
+import java.lang.Integer;
 
 
 public class SICmulator implements Runnable {
@@ -7,20 +12,49 @@ public class SICmulator implements Runnable {
     public SICmulator() {
         mem = new Memory();
     }
-    
+
     public SICmulator(String filename) {
         mem = new Memory();
         loadProgram(filename);
     }
 
-    public void loadProgram(String filename) {
-        // load file into the memory at the specified location.
-        // Should also change the value of PC so it executes from loaded program
+    // Load file into the memory at the specified location.
+    // Should also change the value of PC so it executes from loaded program
+    public static void loadProgram(String filename, Memory mem) {
+        String progName = "";
+        int startAddr = 0;
+        String line;
+        try (BufferedReader br = new BufferedReader(new FileReader(new File(filename)))) {
+
+            // This code pretty gross but it works :/
+            while ((line = br.readLine()) != null) {
+                System.out.println(line);
+                if ((line.charAt(0) == 'H') && (line.length() == 20)) {
+                    progName = line.substring(1, 7);
+                    startAddr = Integer.parseInt(line.substring(7, 13), 16);
+                    System.out.printf("Loading \"%s\" at %04x ...\n", progName, startAddr);
+                }
+                else if (line.charAt(0) == 'T') {
+                    int addr = Integer.parseInt(line.substring(1, 7), 16);
+                    int len = 2 * Integer.parseInt(line.substring(7, 9), 16);
+                    for (int i = 0; i < len; i += 2) {
+                        mem.setByte(Integer.parseInt(line.substring(9 + i, 11 + i), 16), addr + (i / 2), false);
+                    }
+                }
+                else if (line.charAt(0) == 'E') {
+                    System.out.printf("Loaded %s\n", progName);
+                }
+            }
+        }
+        catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
+        }
     }
 
     public void run() {
-        while (true) {
-            // Get the next word in memory at the PC
+        boolean error = false;
+        while (!error) {
+            // Fetch the next word in memory at the PC
             int nextWord = mem.getWord(mem.PC, false);
             mem.PC += 3; // increment PC before executing the instruction
 
@@ -30,14 +64,10 @@ public class SICmulator implements Runnable {
             boolean indexed = (nextWord & 0x8000) != 0;
 
             // Execute the instruction
-            boolean error = execute(opcode, address, indexed);
-
-            // So we can see contents of memory when error occurred
-            if (error) {
-                mem.hexDump("data.txt");
-                return;
-            }
+            error = execute(opcode, address, indexed);
         }
+        // So we can see contents of memory when error occurred
+        mem.hexDump("data.txt");
     }
 
     public boolean execute(int opcode, int address, boolean indexed) {
