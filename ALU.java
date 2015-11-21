@@ -90,6 +90,18 @@ public class ALU {
         mem.A /= data;
         return false;
     }
+    
+    public static boolean j(Memory mem, int addr, boolean indexed) {
+        mem.PC = addr;
+        //set PC to the address to jump to?
+    }
+    
+    public static boolean jeq(Memory mem, int addr, boolean indexed) {
+        if (mem.CC = 0) {
+            mem.PC = addr;
+        }
+        //set PC to the address to jump to? if CC from comp is set to 0
+    }
 
     public static boolean ldx(Memory mem, int addr, boolean indexed) {
         int data = 0;
