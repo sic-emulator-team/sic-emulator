@@ -22,7 +22,6 @@ public class SICmulator implements Runnable {
     // Should also change the value of PC so it executes from loaded program
     public static void loadProgram(String filename, Memory mem) {
         String progName = "";
-        int startAddr = 0;
         String line;
         try (BufferedReader br = new BufferedReader(new FileReader(new File(filename)))) {
 
@@ -31,10 +30,10 @@ public class SICmulator implements Runnable {
                 System.out.println(line);
                 if ((line.charAt(0) == 'H') && (line.length() == 20)) {
                     progName = line.substring(1, 7);
-                    startAddr = Integer.parseInt(line.substring(7, 13), 16);
+                    mem.PC = Integer.parseInt(line.substring(7, 13), 16);
                     System.out.printf("Loading \"%s\" at %04x ...\n", progName, startAddr);
                 }
-                else if (line.charAt(0) == 'T') {
+                else if (line.charAt(0) == 'T' && (line.length >= 9)) {
                     int addr = Integer.parseInt(line.substring(1, 7), 16);
                     int len = 2 * Integer.parseInt(line.substring(7, 9), 16);
                     for (int i = 0; i < len; i += 2) {
