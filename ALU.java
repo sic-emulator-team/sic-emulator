@@ -97,7 +97,7 @@ public class ALU {
     }
     
     public static boolean jeq(Memory mem, int addr, boolean indexed) {
-        if (mem.CC = 0) {
+        if (mem.CC == 0) {
             mem.PC = addr;
         }
         //set PC to the address to jump to? if CC from comp is set to 0
