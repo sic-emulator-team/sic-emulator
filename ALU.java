@@ -28,6 +28,8 @@ public class ALU {
     public static final int OP_STSW = 0xE8;
     public static final int OP_STX  = 0x10;
     public static final int OP_SUB  = 0x1C;
+    public static final int OP_TD   = 0xE0;
+    public static final int OP_TIX  = 0x2C;
     public static final int OP_WD   = 0xDC;
 
     // return true if there was an error, else false
@@ -45,7 +47,7 @@ public class ALU {
 
         return false;
     }
-    
+
     public static boolean and(Memory mem, int addr, boolean indexed) {
         int data = 0;
         try {
@@ -57,7 +59,7 @@ public class ALU {
         mem.A &= data;
         return false;
     }
-    
+
     public static boolean comp(Memory mem, int addr, boolean indexed) {
         int data = 0;
         try {
@@ -67,18 +69,18 @@ public class ALU {
             return true;
         }
         if (mem.A == data) {
-            mem.CC = 0;
-            //set Conditional Code to 0 for JEQ instruction
+            mem.SW = '=';
+            //set Conditional Code to '=' for JEQ instruction
         } else if (mem.A < data) {
-            mem.CC = 1;
-            //set Conditional Code to 1 for JLT instruction
+            mem.SW = '<';
+            //set Conditional Code to '<' for JLT instruction
         } else {
-            mem.CC = 2;
-            //set Conditional Code to 2 for JGT instruction
+            mem.SW = '>';
+            //set Conditional Code to '>' for JGT instruction
         }
         return false;
     }
-    
+
     public static boolean div(Memory mem, int addr, boolean indexed) {
         int data = 0;
         try {
@@ -90,17 +92,17 @@ public class ALU {
         mem.A /= data;
         return false;
     }
-    
+
     public static boolean j(Memory mem, int addr, boolean indexed) {
         mem.PC = addr;
         //set PC to the address to jump to?
     }
-    
+
     public static boolean jeq(Memory mem, int addr, boolean indexed) {
-        if (mem.CC == 0) {
+        if (mem.SW == '=') {
             mem.PC = addr;
         }
-        //set PC to the address to jump to? if CC from comp is set to 0
+        //set PC to the address to jump to? if SW from comp is set to '='
     }
 
     public static boolean ldx(Memory mem, int addr, boolean indexed) {
@@ -110,8 +112,8 @@ public class ALU {
         }
         catch (ArrayIndexOutOfBoundsException e) {
             return true;
-        }       
-        
+        }
+
         mem.X = data;
         return false;
     } 
@@ -123,7 +125,7 @@ public class ALU {
         }
         catch (ArrayIndexOutOfBoundsException e) {
             return true;
-        }       
+        }
 
         mem.A *= data;
         return false;
@@ -136,20 +138,25 @@ public class ALU {
         }
         catch (ArrayIndexOutOfBoundsException e) {
             return true;
-        }       
-        
+        }
+
         mem.A |= data;
         return false;
     }
 
     public static boolean rd(Memory mem, int addr, boolean indexed) {
-        if (indexed) {
-            addr |= 0x8000;
+        int data = 0;
+        try {
+            data = mem.getWord(addr, indexed);
+        }
+        catch (ArrayIndexOutOfBoundsException e) {
+            return true;
         }
         // Read from stdin if device code is 00
-        if (addr == 0) {
+        if (data == 0) {
             mem.A &= 0xffff00; // Clear the lowest byte of A
             try {
+                // Input goes into lowest byte of A
                 mem.A |= (byte) System.in.read(); 
             } catch(IOException e) {
                 return true;
@@ -165,6 +172,40 @@ public class ALU {
 
     public static boolean sta(Memory mem, int addr, boolean indexed) {
         mem.setWord(mem.A, addr, indexed);
+        return false;
+    }
+
+    public static boolean td(Memory mem, int addr, boolean indexed) {
+        int data = 0;
+        try {
+            data = mem.getWord(addr, indexed);
+        }
+        catch (ArrayIndexOutOfBoundsException e) {
+            return true;
+        }
+        mem.SW = '<'; // '<' signals ready for some reason in SIC
+        return false;
+    }
+
+    public static boolean tix(Memory mem, int addr, boolean indexed) {
+        int data = 0;
+        try {
+            data = mem.getWord(addr, indexed);
+        }
+        catch (ArrayIndexOutOfBoundsException e) {
+            return true;
+        } 
+        mem.X++;
+
+        if (mem.X > data) {
+            mem.SW = '>';
+        }
+        else if (mem.X < data) {
+            mem.SW = '<';
+        }
+        else {
+            mem.X = '=';
+        }
         return false;
     }
 
