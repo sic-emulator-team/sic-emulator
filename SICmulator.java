@@ -143,6 +143,12 @@ public class SICmulator implements Runnable {
             case ALU.OP_SUB:
                 error = ALU.sub(mem, address, indexed);
                 break;
+            case ALU.OP_TD:
+                error = ALU.td(mem, address, indexed);
+                break;
+            case ALU.OP_TIX:
+                error = ALU.tix(mem, address, indexed);
+                break;
             case ALU.OP_WD:
                 error = ALU.wd(mem, address, indexed);
                 break;
