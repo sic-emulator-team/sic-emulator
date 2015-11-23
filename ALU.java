@@ -147,7 +147,8 @@ public class ALU {
     public static boolean rd(Memory mem, int addr, boolean indexed) {
         int data = 0;
         try {
-            data = mem.getWord(addr, indexed);
+            // Only read the first 2 bytes
+            data = mem.getWord(addr, indexed) >> 8;
         }
         catch (ArrayIndexOutOfBoundsException e) {
             return true;
@@ -158,7 +159,8 @@ public class ALU {
             try {
                 // Input goes into lowest byte of A
                 mem.A |= (byte) System.in.read(); 
-            } catch(IOException e) {
+            }
+            catch(IOException e) {
                 return true;
             }
         }
@@ -178,7 +180,8 @@ public class ALU {
     public static boolean td(Memory mem, int addr, boolean indexed) {
         int data = 0;
         try {
-            data = mem.getWord(addr, indexed);
+            // Only read the first 2 bytes
+            data = mem.getWord(addr, indexed) >> 8;
         }
         catch (ArrayIndexOutOfBoundsException e) {
             return true;
