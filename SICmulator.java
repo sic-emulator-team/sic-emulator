@@ -20,7 +20,7 @@ public class SICmulator implements Runnable {
 
     // Load file into the memory at the specified location.
     // Should also change the value of PC so it executes from loaded program
-    public static void loadProgram(String filename, Memory mem) {
+    public void loadProgram(String filename) {
         String progName = "";
         String line;
         try (BufferedReader br = new BufferedReader(new FileReader(new File(filename)))) {
@@ -31,9 +31,9 @@ public class SICmulator implements Runnable {
                 if ((line.charAt(0) == 'H') && (line.length() == 20)) {
                     progName = line.substring(1, 7);
                     mem.PC = Integer.parseInt(line.substring(7, 13), 16);
-                    System.out.printf("Loading \"%s\" at %04x ...\n", progName, startAddr);
+                    System.out.printf("Loading \"%s\" at %04x ...\n", progName, mem.PC);
                 }
-                else if (line.charAt(0) == 'T' && (line.length >= 9)) {
+                else if (line.charAt(0) == 'T' && (line.length() >= 9)) {
                     int addr = Integer.parseInt(line.substring(1, 7), 16);
                     int len = 2 * Integer.parseInt(line.substring(7, 9), 16);
                     for (int i = 0; i < len; i += 2) {
@@ -166,11 +166,11 @@ public class SICmulator implements Runnable {
         sim1.run();
 
         // OR... we can use threads to have multiple simulations going at the same time
-        SICmulator sim2 = new SICmulator("FizzBuzz.obj");
-        Thread t1 = new Thread(sim2);
-        t1.start();  // we can continue while it simulates on its own thread
+//        SICmulator sim2 = new SICmulator("FizzBuzz.obj");
+//        Thread t1 = new Thread(sim2);
+//        t1.start();  // we can continue while it simulates on its own thread
 
-        Thread t2 = new Thread(sim1);
-        t2.start();
+//        Thread t2 = new Thread(sim1);
+//        t2.start();
     }
 }
