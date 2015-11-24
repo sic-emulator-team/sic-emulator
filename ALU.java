@@ -96,6 +96,7 @@ public class ALU {
     public static boolean j(Memory mem, int addr, boolean indexed) {
         mem.PC = addr;
         //set PC to the address to jump to?
+        return false;
     }
 
     public static boolean jeq(Memory mem, int addr, boolean indexed) {
@@ -103,6 +104,7 @@ public class ALU {
             mem.PC = addr;
         }
         //set PC to the address to jump to? if SW from comp is set to '='
+        return false;
     }
 
     public static boolean ldx(Memory mem, int addr, boolean indexed) {
@@ -186,7 +188,10 @@ public class ALU {
         catch (ArrayIndexOutOfBoundsException e) {
             return true;
         }
-        mem.SW = '<'; // '<' signals ready for some reason in SIC
+        // 0 - STDIN, 1 - STDOUT, 2 - STDERR
+        if (data >= 0 && data < 3) {
+            mem.SW = '<'; // '<' signals ready for some reason in SIC
+        }
         return false;
     }
 
