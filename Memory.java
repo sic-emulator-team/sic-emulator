@@ -6,7 +6,7 @@ import java.io.IOException;
 public class Memory {
 
     private byte[] memory;
-    public int A, X, L, SW, PC, CC;
+    public int A, X, L, SW, PC;
 
     public Memory() {
         memory = new byte[32768];
@@ -48,7 +48,7 @@ public class Memory {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(new File(filename)))) {
             bw.write("Registers: \n");
             bw.write(String.format(" A: %06x\t  X: %06x\t  L: %06x\n", A, X, L));
-            bw.write(String.format("SW: %06x\t PC: %06x\t CC: %06x\n", SW, PC, CC));
+            bw.write(String.format("SW: %06x\t PC: %06x\n", SW, PC));
 
             for (int i = 0; i < memory.length; i++) {
                 if (i % 16 == 0) bw.write(String.format("\n%04x   ", i));
