@@ -74,69 +74,7 @@ public class ALU {
         if (mem.SW == '=') {
             mem.PC = addr;
         }
-        //set PC to the address to jump to if SW from comp is set to '='
-        return false;
-    }
-    
-    public static boolean jgt(Memory mem, int addr, boolean indexed) {
-        if (mem.SW == ">") {
-            mem.PC = addr;
-        }
-        //set PC to the address to jump to if SW from comp is set to ">"
-        return false;
-    }
-    
-    public static boolean jlt(Memory mem, int addr, boolean indexed) {
-        if (mem.SW == "<") {
-            mem.PC = addr;
-        }
-        //set PC to the address to jump to if SW from comp is set to "<"
-        return false;
-    }
-    
-    public static boolean jsub(Memory mem, int addr, boolean indexed) {
-        mem.L = mem.PC;
-        //store return address in L
-        mem.PC = addr;
-        //set PC to address of subroutine to jump to
-    }
-    
-    public static boolean lda(Memory mem, int addr, boolean indexed) {
-        int data = 0;
-        try {
-            data = mem.getWord(addr, indexed);
-        }
-        catch (ArrayIndexOutOfBoundsException e) {
-            return true;
-        }
-        
-        mem.A = data;
-        return false;
-    }
-    
-    public static boolean ldch(Memory mem, int addr, boolean indexed) {
-        int data = 0;
-        try {
-            data = mem.getByte(addr, indexed);
-        }
-        catch (ArrayIndexOutOfBoundsException e) {
-            return true;
-        }
-        mem.A = data;
-        return false;
-        //loads a byte from memory into the rightmost byte of A? may need to be double-checked
-    }
-    
-    public static boolean ldl(Memory mem, int addr, boolean indexed) {
-        int data = 0;
-        try {
-            data = mem.getWord(addr, indexed);
-        }
-        catch (ArrayIndexOutOfBoundsException e) {
-            return true;
-        }
-
-        mem.L = data;
+        //set PC to the address to jump to? if SW from comp is set to '='
         return false;
     }
 
@@ -219,39 +157,6 @@ public class ALU {
 
     public static boolean sta(Memory mem, int addr, boolean indexed) {
         mem.setWord(mem.A, addr, indexed);
-        return false;
-    }
-    
-    public static boolean stch(Memory mem, int addr, boolean indexed) {
-        mem.setByte(mem.A, addr, indexed);
-        return false;
-        //stores a character from the rightmost byte of A into memory? may need to be double-checked
-    }
-    
-    public static boolean stl(Memory mem, int addr, boolean indexed) {
-        mem.setWord(mem.L, addr, indexed);
-        return false;
-    }
-    
-    public static boolean stsw(Memory mem, int addr, boolean indexed) {
-        mem.setWord(mem.SW, addr, indexed);
-        return false;
-    }
-    
-    public static boolean stx(Memory mem, int addr, boolean indexed) {
-        mem.setWord(mem.X, addr, indexed);
-        return false;
-    }
-    
-    public static boolean sub(Memory mem, int addr, boolean indexed) {
-        int data = 0;
-        try {
-            data = mem.getWord(addr, indexed);
-        }
-        catch (ArrayIndexOutOfBoundsException e) {
-            return true;
-        }
-        mem.A -= data;
         return false;
     }
 
