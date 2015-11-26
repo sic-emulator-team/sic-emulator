@@ -3,11 +3,48 @@ import java.io.FileReader;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Integer;
+import java.util.Map;
+import java.util.HashMap;
 
 
 public class SICmulator implements Runnable {
 
     private Memory mem;
+    private static Map<Integer, Operation> opcodeMap;
+
+    private interface Operation {
+        boolean execute(Memory mem, int addr, boolean indexed);
+    }
+
+    static {
+        opcodeMap = new HashMap<>(26, 0.7f);
+        opcodeMap.put(ALU.OP_ADD,  (op, addr, ind) ->  ALU.add(op, addr, ind));
+        opcodeMap.put(ALU.OP_AND,  (op, addr, ind) ->  ALU.and(op, addr, ind));
+        opcodeMap.put(ALU.OP_COMP, (op, addr, ind) ->  ALU.comp(op, addr, ind));
+        opcodeMap.put(ALU.OP_DIV,  (op, addr, ind) ->  ALU.div(op, addr, ind));
+        opcodeMap.put(ALU.OP_J,    (op, addr, ind) ->  ALU.j(op, addr, ind));
+        opcodeMap.put(ALU.OP_JEQ,  (op, addr, ind) ->  ALU.jeq(op, addr, ind));
+        opcodeMap.put(ALU.OP_JGT,  (op, addr, ind) ->  ALU.jgt(op, addr, ind));
+        opcodeMap.put(ALU.OP_JLT,  (op, addr, ind) ->  ALU.jlt(op, addr, ind));
+        opcodeMap.put(ALU.OP_JSUB, (op, addr, ind) ->  ALU.jsub(op, addr, ind));
+        opcodeMap.put(ALU.OP_LDA,  (op, addr, ind) ->  ALU.lda(op, addr, ind));
+        opcodeMap.put(ALU.OP_LDCH, (op, addr, ind) ->  ALU.ldch(op, addr, ind));
+        opcodeMap.put(ALU.OP_LDL,  (op, addr, ind) ->  ALU.ldl(op, addr, ind));
+        opcodeMap.put(ALU.OP_LDX,  (op, addr, ind) ->  ALU.ldx(op, addr, ind));
+        opcodeMap.put(ALU.OP_MUL,  (op, addr, ind) ->  ALU.mul(op, addr, ind));
+        opcodeMap.put(ALU.OP_OR,   (op, addr, ind) ->  ALU.or(op, addr, ind));
+        opcodeMap.put(ALU.OP_RD,   (op, addr, ind) ->  ALU.rd(op, addr, ind));
+        opcodeMap.put(ALU.OP_RSUB, (op, addr, ind) ->  ALU.rsub(op, addr, ind));
+        opcodeMap.put(ALU.OP_STA,  (op, addr, ind) ->  ALU.sta(op, addr, ind));
+        opcodeMap.put(ALU.OP_STCH, (op, addr, ind) ->  ALU.stch(op, addr, ind));
+        opcodeMap.put(ALU.OP_STL,  (op, addr, ind) ->  ALU.stl(op, addr, ind));
+        opcodeMap.put(ALU.OP_STSW, (op, addr, ind) ->  ALU.stsw(op, addr, ind));
+        opcodeMap.put(ALU.OP_STX,  (op, addr, ind) ->  ALU.stx(op, addr, ind));
+        opcodeMap.put(ALU.OP_SUB,  (op, addr, ind) ->  ALU.sub(op, addr, ind));
+        opcodeMap.put(ALU.OP_TD,   (op, addr, ind) ->  ALU.td(op, addr, ind));
+        opcodeMap.put(ALU.OP_TIX,  (op, addr, ind) ->  ALU.tix(op, addr, ind));
+        opcodeMap.put(ALU.OP_WD,   (op, addr, ind) ->  ALU.wd(op, addr, ind));
+    }
 
     public SICmulator() {
         mem = new Memory();
@@ -27,11 +64,10 @@ public class SICmulator implements Runnable {
 
             // This code pretty gross but it works :/
             while ((line = br.readLine()) != null) {
-                System.out.println(line);
-                if ((line.charAt(0) == 'H') && (line.length() == 20)) {
+                if ((line.charAt(0) == 'H') && (line.length() >= 19)) {
                     progName = line.substring(1, 7);
                     mem.PC = Integer.parseInt(line.substring(7, 13), 16);
-                    System.out.printf("Loading \"%s\" at %04x ...\n", progName, mem.PC);
+                    System.err.printf("Loading \"%s\" at %04x ... ", progName, mem.PC);
                 }
                 else if (line.charAt(0) == 'T' && (line.length() >= 9)) {
                     int addr = Integer.parseInt(line.substring(1, 7), 16);
@@ -41,7 +77,7 @@ public class SICmulator implements Runnable {
                     }
                 }
                 else if (line.charAt(0) == 'E') {
-                    System.out.printf("Loaded %s\n", progName);
+                    System.err.printf("Loaded %s\n", progName);
                 }
             }
         }
@@ -52,7 +88,7 @@ public class SICmulator implements Runnable {
 
     public void run() {
         boolean error = false;
-        while (!error) {
+        while (!error && (mem.PC >= 0) && (mem.PC < mem.memory.length)) {
             // Fetch the next word in memory at the PC
             int nextWord = mem.getWord(mem.PC, false);
             mem.PC += 3; // increment PC before executing the instruction
@@ -63,101 +99,21 @@ public class SICmulator implements Runnable {
             boolean indexed = (nextWord & 0x8000) != 0;
 
             // Execute the instruction
-            error = execute(opcode, address, indexed);
+            Operation op = opcodeMap.get(opcode); // Get method associated with opcode
+            if (op != null) {
+                try {
+                    error = op.execute(mem, address, indexed);
+                }
+                catch (ArrayIndexOutOfBoundsException e) {
+                    error = true; // There was an error with addressing
+                }
+            }
+            else {
+                error = true; // The opcode was invalid
+            }
         }
         // So we can see contents of memory when error occurred
         mem.hexDump("data.txt");
-    }
-
-    public boolean execute(int opcode, int address, boolean indexed) {
-        boolean error; 
-
-        // A function pointer would have been nice here... 
-        switch (opcode) {
-            case ALU.OP_ADD:
-                error = ALU.add(mem, address, indexed);
-                break;
-            case ALU.OP_AND:
-                error = ALU.and(mem, address, indexed);
-                break;
-            case ALU.OP_COMP:
-                error = ALU.comp(mem, address, indexed);
-                break;
-            case ALU.OP_DIV:
-                error = ALU.div(mem, address, indexed);
-                break;
-            case ALU.OP_J:
-                error = ALU.j(mem, address, indexed);
-                break;
-            case ALU.OP_JEQ:
-                error = ALU.jeq(mem, address, indexed);
-                break;
-            case ALU.OP_JGT:
-                error = ALU.jgt(mem, address, indexed);
-                break;
-            case ALU.OP_JLT:
-                error = ALU.jlt(mem, address, indexed);
-                break;
-            case ALU.OP_JSUB:
-                error = ALU.jsub(mem, address, indexed);
-                break;
-            case ALU.OP_LDA:
-                error = ALU.lda(mem, address, indexed);
-                break;
-            case ALU.OP_LDCH:
-                error = ALU.ldch(mem, address, indexed);
-                break; 
-            case ALU.OP_LDL:
-                error = ALU.ldl(mem, address, indexed);
-                break; 
-            case ALU.OP_LDX:
-                error = ALU.ldx(mem, address, indexed);
-                break; 
-            case ALU.OP_MUL:
-                error = ALU.mul(mem, address, indexed);
-                break;
-            case ALU.OP_OR:
-                error = ALU.or(mem, address, indexed);
-                break;
-            case ALU.OP_RD:
-                error = ALU.rd(mem, address, indexed);
-                break;
-            case ALU.OP_RSUB:
-                error = ALU.rsub(mem, address, indexed);
-                break;
-            case ALU.OP_STA:
-                error = ALU.sta(mem, address, indexed);
-                break;
-            case ALU.OP_STCH:
-                error = ALU.stch(mem, address, indexed);
-                break;
-            case ALU.OP_STL:
-                error = ALU.stl(mem, address, indexed);
-                break;
-            case ALU.OP_STSW:
-                error = ALU.stsw(mem, address, indexed);
-                break;
-            case ALU.OP_STX:
-                error = ALU.stx(mem, address, indexed);
-                break;
-            case ALU.OP_SUB:
-                error = ALU.sub(mem, address, indexed);
-                break;
-            case ALU.OP_TD:
-                error = ALU.td(mem, address, indexed);
-                break;
-            case ALU.OP_TIX:
-                error = ALU.tix(mem, address, indexed);
-                break;
-            case ALU.OP_WD:
-                error = ALU.wd(mem, address, indexed);
-                break;
-
-            default:
-                System.err.printf("Encountered invalid opcode: %2x\n", opcode);
-                error = true; // opcode was invalid...
-        }   
-        return error;
     }
 
     public static void main(String[] args) {
