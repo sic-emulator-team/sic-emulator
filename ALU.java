@@ -32,6 +32,8 @@ public class ALU {
     public static final int OP_TIX  = 0x2C;
     public static final int OP_WD   = 0xDC;
 
+    public static boolean stdinOpen = true;
+
     // return true if there was an error, else false
     public static boolean add(Memory mem, int addr, boolean indexed) {
         // Not sure if this will actually work... I hope it does :o
@@ -141,7 +143,12 @@ public class ALU {
             mem.A &= 0xffff00; // Clear the lowest byte of A
             try {
                 // Input goes into lowest byte of A
-                mem.A |= (byte) System.in.read();
+                int input = System.in.read();
+                if (!stdinOpen || input == -1) {
+                    stdinOpen = false;
+                    input = 0;
+                }
+                mem.A |= input;
             }
             catch(IOException e) {
                 return true;
@@ -227,4 +234,5 @@ public class ALU {
         }
         return false;
     }
+
 }
