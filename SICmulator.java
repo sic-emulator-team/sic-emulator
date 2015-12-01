@@ -9,7 +9,7 @@ import java.util.HashMap;
 
 public class SICmulator implements Runnable {
 
-    private Memory mem;
+    public Memory mem;
     private static Map<Integer, Operation> opcodeMap;
 
     private interface Operation {
@@ -50,8 +50,8 @@ public class SICmulator implements Runnable {
         mem = new Memory();
     }
 
-    public SICmulator(String filename) {
-        mem = new Memory();
+    public SICmulator(String filename, int size) {
+        mem = new Memory(size);
         loadProgram(filename);
     }
 
@@ -118,15 +118,11 @@ public class SICmulator implements Runnable {
 
     public static void main(String[] args) {
 
-        SICmulator sim1 = new SICmulator("HelloWorld.obj");
-        sim1.run();
+        SICmulator sim = new SICmulator("HelloWorld.obj", 0x3000);
+        int PC = sim.mem.PC; // save PC because it will change with next load
+        sim.loadProgram("hcopy.obj");
+        sim.mem.PC = PC;
 
-        // OR... we can use threads to have multiple simulations going at the same time
-//        SICmulator sim2 = new SICmulator("FizzBuzz.obj");
-//        Thread t1 = new Thread(sim2);
-//        t1.start();  // we can continue while it simulates on its own thread
-
-//        Thread t2 = new Thread(sim1);
-//        t2.start();
+        sim.run(); // start!!
     }
 }
